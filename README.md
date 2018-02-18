@@ -47,6 +47,12 @@ Start the project
 docker-compose up -d
 ```
 
+Stop the project
+
+```bash
+docker-compose down
+```
+
 ex: Start with 3 kafka Instances
 
 ```bash
