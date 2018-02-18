@@ -30,30 +30,19 @@ describe("Test Front API", function() {
         });
     });
 
-    it("Post 10 message", function(done) {
+    it("Post 10 message", async function  () {
       var Sendmessages = [];
       for (var c = 0; c < 10; c++) {
-        queue.add(() =>
+        await queue.add(() =>
           request
             .postAsync({
               url: "http://api:4343/api/message",
-              body: "This is a test message:" + c,
+              body: "This is a test:" + c ,
               headers: { "Content-Type": "text/plain" }
-            })
-            .spread(function(res, body) {
-              try {
-                if (JSON.parse(body).status === "ok") {
-                  done();
-                }
-              } catch (e) {
-                done(e);
-              }
             })
         );
       }
-      queue.onEmpty().then(() => {
-        done();
-      });
+      return queue.onEmpty();
     });
   });
 });
