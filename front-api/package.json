@@ -13,6 +13,7 @@
     "body-parser": "~1.15.2",
     "express": "*",
     "kafka-node": "^2.4.1",
+    "p-queue": "^2.3.0",
     "request": "^2.83.0"
   },
   "devDependencies": {

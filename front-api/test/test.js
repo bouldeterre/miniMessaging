@@ -7,13 +7,15 @@ var Docker = require("dockerode");
 var docker = new Docker({
 	Promise: Promise
 });
+const PQueue = require("p-queue");
+const queue = new PQueue({ concurrency: 1 });
 
 describe("Test Front API", function() {
 	describe("Route", function() {
 		it("Post 1 message", function(done) {
 			request
 				.postAsync({
-					url: "http://127.0.0.1:4242/api/message",
+					url: "http://api:4343/api/message",
 					body: "This is a test message",
 					headers: { "Content-Type": "text/plain" }
 				})
@@ -30,22 +32,27 @@ describe("Test Front API", function() {
 
 		it("Post 10 message", function(done) {
 			var Sendmessages = [];
-			for (var c = 0; c < 10; c++)
-				Sendmessages.push(
-					request.postAsync({
-						url: "http://127.0.0.1:4242/api/message",
-						body: "This is a test message:" + c,
-						headers: { "Content-Type": "text/plain" }
-					})
+			for (var c = 0; c < 10; c++) {
+				queue.add(() =>
+					request
+						.postAsync({
+							url: "http://api:4343/api/message",
+							body: "This is a test message:" + c,
+							headers: { "Content-Type": "text/plain" }
+						})
+						.spread(function(res, body) {
+							try {
+								if (JSON.parse(body).status === "ok") {
+									done();
+								}
+							} catch (e) {
+								done(e);
+							}
+						})
 				);
-			Promise.each(Sendmessages, function(item) {
-				return item;
-			}).then(function(data) {
-				var ok = true;
-				for (var variable of data) {
-					if (JSON.parse(variable[1]).status !== "ok") ok = false;
-				}
-				if (ok === true) done();
+			}
+			queue.onEmpty().then(() => {
+				done();
 			});
 		});
 	});

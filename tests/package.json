@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "~1.15.2",
+    "p-queue": "^2.3.0",
     "request": "^2.83.0"
   },
   "devDependencies": {

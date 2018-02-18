@@ -3,6 +3,8 @@ const debugError = require("debug")("EmailService:app:error");
 const nodemailer = require("nodemailer");
 var Promise = require("bluebird");
 var kafkaConsumer = require("./kafka-consumer.js");
+const PQueue = require("p-queue");
+const queue = new PQueue({ concurrency: 1 });
 
 debug("Starting EmailService...");
 
@@ -17,17 +19,20 @@ var sendMailAsync = Promise.promisify(transporter.sendMail, {
 });
 
 kafkaConsumer.kafkaConsumer.on("message", function(message) {
-  sendMailAsync({
-    from: "EmailService@EmailService.com",
-    to: "recipient@example.com",
-    subject: "Message",
-    text: message
-  })
-    .then(function(info) {
-      kafkaConsumer.Commit();
-      debug(info);
+  debug("message add to queue:" + message);
+  queue.add(() =>
+    sendMailAsync({
+      from: "EmailService@EmailService.com",
+      to: "recipient@example.com",
+      subject: "Message",
+      text: message
     })
-    .catch(function(err) {
-      debugError(err.message);
-    });
+      .then(function(info) {
+        kafkaConsumer.Commit();
+        debug(info);
+      })
+      .catch(function(err) {
+        debugError(err.message);
+      })
+  );
 });

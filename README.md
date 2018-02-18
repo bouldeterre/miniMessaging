@@ -110,7 +110,8 @@ npm run test
 With docker-compose:
 
 ```bash
-docker-compose -f docker-compose.test.yml up -d
+docker-compose up -d
+docker-compose -f docker-compose.test.yml up tests
 ```
 
 ## 🔮 Next Steps
