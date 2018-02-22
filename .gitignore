@@ -1,0 +1,23 @@
+# General and apps
+.tmp
+*.codekit*
+*.DS_Store*
+*.sublime-*
+.project
+.buildpath
+.settings
+*~
+
+# Node, Bower and Sass
+node_modules
+npm-debug.log
+dist
+.sass-cache
+bower_components
+
+# Logs
+appd.out
+appd.err
+uploads/*
+images/
+bfg.jar

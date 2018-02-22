@@ -1,0 +1,73 @@
+version: '2'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: "T:1:1"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:SSL,BROKER:PLAINTEXT
+      KAFKA_ADVERTISED_PROTOCOL_NAME: OUTSIDE
+      KAFKA_PROTOCOL_NAME: INSIDE
+      KAFKA_ADVERTISED_PORT: 9094
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+  api:
+    build: ./front-api
+    restart: on-failure
+    environment:
+      - DEBUG=*Api*
+    command: "npm run start"
+    ports:
+      - 127.0.0.1:4242:4343
+    depends_on:
+      - zookeeper
+      - kafka
+  slack-service:
+    build: ./slack-service
+    restart: on-failure
+    environment:
+      - DEBUG=*SlackService*
+    command: "npm run start"
+    depends_on:
+      - zookeeper
+      - kafka
+  email-service:
+    build: ./email-service
+    restart: on-failure
+    environment:
+      - DEBUG=*EmailService*
+    command: "npm run start"
+    depends_on:
+      - zookeeper
+      - kafka
+  tests:
+    build: ./tests
+    command: "npm run test"
+    depends_on:
+      - zookeeper
+      - kafka
+      - api
+      - slack-service
+      - email-service
+
+# DEBUG AND MONITORING
+  # kafka-manager:
+  #   image: dockerkafka/kafka-manager
+  #   ports:
+  #     - "9000:9000"
+  #   environment:
+  #     ZK_HOSTS: zookeeper:2181
+  maildev:
+    image: djfarrelly/maildev
+    ports:
+      - "1080:80"
+      - "1025:25"
